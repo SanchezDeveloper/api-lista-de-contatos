@@ -1,5 +1,6 @@
 import express from 'express';
 import { readFile, writeFile } from 'fs/promises';
+import { createContact, deleteContact, getContacts } from '../services/contact.js';
 
 const dataSource = './data/list.txt';
 
@@ -21,20 +22,29 @@ router.post('/contato', async (req, res) => {
     return;
   }
 
-  // processamento dos dados
-  let list: string[] = [];
-
-  //formatação de texto
-  try {
-    const data = await readFile(dataSource, {encoding: 'utf-8'});
-    list = data.split('\n');
-  } catch(err) {}
-
-  list.push(name);
-  await writeFile(dataSource, list.join('\n'));
+  await createContact(name);
 
   res.status(201).json({ contato: name });
 
+});
+
+//rota para listar contato
+router.get('/contatos', async (req, res) => {
+  let list = await getContacts();
+  res.json({ contatos: list });
+});
+
+//rota de deletar contato
+router.delete('/contato', async (req, res) => {
+  const { name } = req.query;
+  
+  if(!name) {
+  return res.json({ error: 'Precisa mandar um nome para excluir.' });
+  }
+
+  await deleteContact(name as string);
+
+  res.json({ contato: name });
 });
 
 export default router;
